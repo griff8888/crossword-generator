@@ -1,0 +1,10 @@
+C:\Users\griff\OneDrive\Desktop\cs241 project\241-group-project-mawg\cross_reader\target\debug\deps\libdeflate64-7aa3050932fd7c5b.rmeta: C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\lib.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\huffman_tree.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\inflater_managed.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\input_buffer.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\output_window.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\stream.rs
+
+C:\Users\griff\OneDrive\Desktop\cs241 project\241-group-project-mawg\cross_reader\target\debug\deps\deflate64-7aa3050932fd7c5b.d: C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\lib.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\huffman_tree.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\inflater_managed.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\input_buffer.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\output_window.rs C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\stream.rs
+
+C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\lib.rs:
+C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\huffman_tree.rs:
+C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\inflater_managed.rs:
+C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\input_buffer.rs:
+C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\output_window.rs:
+C:\Users\griff\.cargo\registry\src\index.crates.io-6f17d22bba15001f\deflate64-0.1.9\src\stream.rs:
