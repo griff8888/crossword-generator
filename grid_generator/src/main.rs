@@ -14,14 +14,27 @@ struct Square {
     y_pos: i32,
 }
 
+#[derive(Debug, Clone)]
+struct Row {
+    y: i32,
+    row: Vec<Square>,
+}
+
+#[derive(Debug, Clone)]
+struct Column {
+    x: i32,
+    column: Vec<Square>,
+}
 fn main() {
     // creates a pdf with a plain border 
     let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(210.0), Mm(297.0), "Layer 1");
     let layer = doc.get_page(page1).get_layer(layer1);
+    let font = doc.add_external_font(File::open(String::from("../ARIAL.TTF")).unwrap()).unwrap();
+    //let font = doc.add_external_font(File::open(String::from("../../ARIAL.TTF")).unwrap());
     let outline = Rect::new(Mm(5.0), Mm(5.0), Mm(205.0), Mm(292.0)).with_mode(PaintMode::Stroke);
     layer.add_rect(outline);
     // define square_ct -> all other variables are dependent on this variable
-    let square_ct = 15;
+    let square_ct = 5;
     // because crossword follows symmetry, square_ct must be odd so that there is a 'middle'
     if square_ct % 2 == 0 || square_ct < 5 {
         println!("# of squares must be an odd whole number larger than 5");
@@ -51,9 +64,9 @@ fn main() {
             // decides if square will be blacked out
             let num = rng.gen_range(0..5);
             let mut mode: PaintMode = PaintMode::Stroke;
-            if num == 0 {
-                mode = PaintMode::Fill;
-            }
+            // if num == 0 {
+            //     mode = PaintMode::Fill;
+            // }
            
             x_mm = start_x + Mm(x_pos as f32) * square_size;
            // defines a new square object
@@ -81,9 +94,9 @@ fn main() {
     while x_pos < ((square_ct / 2) + 1) {
         let num = rng.gen_range(0..5);
         let mut mode: PaintMode = PaintMode::Stroke;
-        if num == 0 {
-            mode = PaintMode::Fill;
-        }
+        // if num == 0 {
+        //     mode = PaintMode::Fill;
+        // }
         x_mm = start_x + Mm(x_pos as f32) * square_size;
         // defines a new square object
         let square = Square {
@@ -107,8 +120,8 @@ fn main() {
                 fill: reference_square.fill,
                 x_mm: Mm(205.0 - ((square_ct - x_pos) as f32 * square_size)),
                 y_mm,
-                x_pos: reference_square.x_pos,
-                y_pos,
+                x_pos: square_ct - reference_square.x_pos - 1,
+                y_pos: reference_square.y_pos,
             };
 
             middle_row.push(square);
@@ -140,7 +153,7 @@ fn main() {
                 fill: reference_square.fill,
                 x_mm: Mm(205.0 - ((square_ct - x_pos) as f32 * square_size)),
                 y_mm,
-                x_pos: reference_square.x_pos,
+                x_pos,
                 y_pos,
             };
 
@@ -151,14 +164,18 @@ fn main() {
         y_mm += Mm(square_size);
         y_pos -= 1;
     }
-
+    let mut ct = 1;
     for squares in rows_master {
         for square in squares {
-            //println!("{:#?}", square);
+            println!("{} ({}, {})", ct, square.x_pos, square.y_pos);
+            let text: &str = &ct.to_string();
+            layer.use_text(text, 48.0, square.x_mm + Mm(square_size / 2.0), square.y_mm + Mm(square_size / 2.0), &font);
             let square = Rect::new(square.x_mm, square.y_mm, square.x_mm + Mm(square_size), square.y_mm + Mm(square_size)).with_mode(square.fill);
             layer.add_rect(square);
+            ct += 1;
         }
     }
+    
     //exports the pdf
     doc.save(&mut BufWriter::new(File::create("crossword.pdf").unwrap())).unwrap();
 }
