@@ -25,6 +25,13 @@ struct Column {
     x: i32,
     column: Vec<Square>,
 }
+
+#[derive(Debug, Clone,)]
+struct Grid{
+    size: i32,
+    rows: Vec<Row>,
+    columns: Vec<Column>,
+}
 fn main() {
     // creates a pdf with a plain border 
     let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(210.0), Mm(297.0), "Layer 1");
@@ -60,6 +67,7 @@ fn main() {
         x_pos = 0;
         // defines the vector that will represent a specific horizontal row
         let mut squares: Vec<Square> = Vec::new();
+        let mut squares2 =
         while x_pos < square_ct {
             // decides if square will be blacked out
             let num = rng.gen_range(0..5);
@@ -168,8 +176,9 @@ fn main() {
     for squares in rows_master {
         for square in squares {
             println!("{} ({}, {})", ct, square.x_pos, square.y_pos);
-            let text: &str = &ct.to_string();
-            layer.use_text(text, 48.0, square.x_mm + Mm(square_size / 2.0), square.y_mm + Mm(square_size / 2.0), &font);
+            //let text: &str = &ct.to_string();
+            let text = format!("{}, {}", square.x_pos.to_string(), square.y_pos.to_string());
+            layer.use_text(text, 40.0, square.x_mm + Mm(square_size / 2.0) - Mm(15.0), square.y_mm + Mm(square_size / 2.0) - Mm(15.0), &font);
             let square = Rect::new(square.x_mm, square.y_mm, square.x_mm + Mm(square_size), square.y_mm + Mm(square_size)).with_mode(square.fill);
             layer.add_rect(square);
             ct += 1;
