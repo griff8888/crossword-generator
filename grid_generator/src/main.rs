@@ -191,7 +191,25 @@ impl Grid {
         pdf.save(&mut BufWriter::new(File::create("crossword.pdf").unwrap())).unwrap();
     }
 
+    fn columns(&mut self) {
+        let mut columns: Vec<Column> = Vec::new();
+        for column_index in 0..self.size {
+            let mut column_vec: Vec<Square> = Vec::new();
+            for row in &self.rows {
+                if let Some(square) = row.vec.get(column_index as usize) {
+                    column_vec.push(*square);
+                }
+            }
+            let column = Column {
+                x: column_index,
+                vec: column_vec,
+            };
+            columns.push(column);
+        }
+        self.columns = columns;
+    }
 }
+
 fn main() {
     // creates a pdf with a plain border 
     let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(210.0), Mm(297.0), "Layer 1");
@@ -208,10 +226,10 @@ fn main() {
         exit(0);
     }
 
-  
     let mut grid= Grid::new(5);
 
     grid.generate();
-
+    grid.columns();
+    println!("{:#?}", grid.columns);
     grid.draw_grid(doc, layer);
 }
