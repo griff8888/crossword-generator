@@ -1,0 +1,10 @@
+5 x 5
+
+generate
+1. top 2x5
+2.middle 3x1
+3. push first half of middle
+
+mirror
+1. middle 2x1
+2. bottom 2x5
