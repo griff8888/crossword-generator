@@ -69,9 +69,9 @@ impl Grid {
                 // decides if square will be blacked out
                 let num = rng.gen_range(0..6);
                 let mut mode: PaintMode = PaintMode::Stroke;
-                // if num == 0 {
-                //     mode = PaintMode::Fill;
-                // }
+                if num == 0 {
+                    mode = PaintMode::Fill;
+                }
             
                 let x_mm = start_x + Mm(x_pos as f32) * self.width;
             // defines a new square object
@@ -103,14 +103,14 @@ impl Grid {
         while x_pos < ((self.size / 2) + 1) {
             let num = rng.gen_range(0..6);
             let mut mode: PaintMode = PaintMode::Stroke;
-            // if num == 0 {
-            //     mode = PaintMode::Fill;
-            // }
+            if num == 0 {
+                mode = PaintMode::Fill;
+            }
             // defines a new square object
             let square = Square {
                 fill: mode,                
                 x_mm: Mm(5.0) + Mm(self.width * (x_pos) as f32),
-                y_mm: Mm(252.0) - Mm(self.width * y_pos as f32),
+                y_mm: Mm(292.0 - self.width) - Mm(self.width * y_pos as f32),
                 x_pos,
                 y_pos,
             };
@@ -118,9 +118,18 @@ impl Grid {
             x_pos += 1;
         }
 
+        self.rows.push(middle_row);
 
+
+    }
+
+    fn mirror(&mut self) {
+        
+        let mut middle_row: Row = self.rows.pop().unwrap();
         let mut middle_row_rev = middle_row.vec.clone();
         middle_row_rev.remove(middle_row_rev.len() - 1);
+
+        let mut x_pos: i32 = (self.size + 1) / 2;
 
         while x_pos < self.size  {
                 let reference_square = &middle_row_rev[(self.size - x_pos - 1) as usize];
@@ -174,11 +183,6 @@ impl Grid {
             y_mm += Mm(self.width);
             y_pos -= 1;
         }
-        
-    }
-
-    fn mirror(&mut self) {
-        
     }
 
     fn draw_grid(&self, pdf: PdfDocumentReference, layer: PdfLayerReference, font: IndirectFontRef) {
@@ -189,7 +193,7 @@ impl Grid {
             for square in squares.vec {
                 //println!("{} ({}, {})", ct, square.x_pos, square.y_pos);
                 let text = format!("{}, {}", square.x_pos.to_string(), square.y_pos.to_string());
-                layer.use_text(text, 40.0, square.x_mm + Mm(self.width / 2.0) - Mm(15.0), square.y_mm + Mm(self.width / 2.0) - Mm(15.0), &font);
+                //layer.use_text(text, 40.0, square.x_mm + Mm(self.width / 2.0) - Mm(15.0), square.y_mm + Mm(self.width / 2.0) - Mm(15.0), &font);
                 let square = Rect::new(square.x_mm, square.y_mm, square.x_mm + Mm(self.width), square.y_mm + Mm(self.width)).with_mode(square.fill);
                 layer.add_rect(square);
                 ct += 1;
@@ -222,9 +226,30 @@ impl Grid {
     fn decide_fill(&mut self) {
         let max_black_ct = (self.size * self.size) / 6;
         let mut black_ct: i32 = 0;
-        while !self.follows_rules {
-            todo!()
+
+
+        for row in self.rows.clone() {
+            for square in row.vec {
+                todo!()
+            }
         }
+
+
+
+        // while !self.follows_rules {
+        //     for row in self.rows.clone() {
+        //         let mut words: Vec<i32> = Vec::new();
+        //         while !row.follows_rules {
+                    
+        //         }
+        //     }
+
+        //     for column in self.columns.clone() {
+        //         while !column.follows_rules {
+
+        //         }
+        //     }
+        // }
 
     }
 
@@ -235,24 +260,20 @@ fn main() {
     let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(210.0), Mm(297.0), "Layer 1");
     let layer = doc.get_page(page1).get_layer(layer1);
     let font = doc.add_external_font(File::open(String::from("../ARIAL.TTF")).unwrap()).unwrap();
-    //let font = doc.add_external_font(File::open(String::from("../../ARIAL.TTF")).unwrap());
     let outline = Rect::new(Mm(5.0), Mm(5.0), Mm(205.0), Mm(292.0)).with_mode(PaintMode::Stroke);
     layer.add_rect(outline);
-    
-    
     // define square_ct -> all other variables are dependent on this variable
-    let square_ct = 5;
+    let size: i32 = 11;
     // because crossword follows symmetry, square_ct must be odd so that there is a 'middle'
-    if square_ct % 2 == 0 || square_ct < 5 {
+    if size % 2 == 0 || size < 5 {
         println!("# of squares must be an odd whole number larger than 5");
         exit(0);
     }
 
-    let mut grid= Grid::new(5);
+    let mut grid= Grid::new(size);
 
     grid.generate();
     grid.mirror();
     grid.columns();
-    //println!("{:#?}", grid.columns);
     grid.draw_grid(doc, layer, font);
 }
