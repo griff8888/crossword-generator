@@ -146,7 +146,7 @@ impl Grid {
         }
 
         self.rows.push(middle_row);
-
+        let insert_index: usize = self.rows.len();
         let mut y_pos = self.size - 1;
         let mut y_mm = Mm(292.0 - (self.size as f32 * self.width));
         //creates a reverse of 'rows'
@@ -179,7 +179,7 @@ impl Grid {
                 squares.vec.push(square);
                 x_pos += 1;
             }
-            self.rows.push(squares);
+            self.rows.insert(insert_index,squares);
             y_mm += Mm(self.width);
             y_pos -= 1;
         }
@@ -229,9 +229,24 @@ impl Grid {
 
 
         for row in self.rows.clone() {
-            for square in row.vec {
-                todo!()
+            let mut white_spaces: Vec<i32> = Vec::new();
+            let mut white_ct: i32 = 0;
+            let mut ct: usize = 0;
+            for square in &row.vec {
+                if square.fill == PaintMode::Stroke {
+                    white_ct += 1;
+                } else {
+                    //white_spaces.push(ct);
+                    if white_ct != 0 && ct == row.clone().vec.len()  {
+                        white_spaces.push(white_ct);
+                    }
+                    white_ct = 0;
+                }
+                ct += 1;
             }
+            //ct = 0;
+            white_spaces.push(white_ct);
+            println!("{:#?}", white_spaces);
         }
 
 
@@ -263,7 +278,7 @@ fn main() {
     let outline = Rect::new(Mm(5.0), Mm(5.0), Mm(205.0), Mm(292.0)).with_mode(PaintMode::Stroke);
     layer.add_rect(outline);
     // define square_ct -> all other variables are dependent on this variable
-    let size: i32 = 11;
+    let size: i32 = 7;
     // because crossword follows symmetry, square_ct must be odd so that there is a 'middle'
     if size % 2 == 0 || size < 5 {
         println!("# of squares must be an odd whole number larger than 5");
@@ -275,5 +290,6 @@ fn main() {
     grid.generate();
     grid.mirror();
     grid.columns();
+    grid.decide_fill();
     grid.draw_grid(doc, layer, font);
 }
