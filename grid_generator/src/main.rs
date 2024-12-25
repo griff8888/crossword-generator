@@ -3,7 +3,14 @@ use printpdf::path::PaintMode;
 use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::BufWriter;
+use std::option::Iter;
 use std::process::exit;
+
+#[derive(Debug, Clone, Copy)]
+enum Fill {
+    White(i32),
+    Black(i32),
+}
 
 #[derive(Debug, Clone, Copy)]
 struct Square {
@@ -19,6 +26,7 @@ struct Row {
     y: i32,
     vec: Vec<Square>,
     follows_rules: bool,
+    fill_vec: Vec<Fill>,
 }
 
 #[derive(Debug, Clone)]
@@ -64,6 +72,7 @@ impl Grid {
                 y: y_pos,
                 vec: Vec::<Square>::new(),
                 follows_rules: false,
+                fill_vec: Vec::<Fill>::new(),
             };
             while x_pos < self.size {
                 // decides if square will be blacked out
@@ -98,6 +107,7 @@ impl Grid {
             y: y_pos,
             vec: Vec::<Square>::new(),
             follows_rules: false,
+            fill_vec: Vec::<Fill>::new(),
         };
 
         while x_pos < ((self.size / 2) + 1) {
@@ -165,6 +175,7 @@ impl Grid {
                 y: y_pos,
                 vec: Vec::<Square>::new(),
                 follows_rules: false,
+                fill_vec: Vec::<Fill>::new(),
             };
             while x_pos < self.size {
                 let reference_square = &rows_rev[(self.size - y_pos - 1) as usize].vec[(x_pos) as usize];
@@ -224,48 +235,59 @@ impl Grid {
     }
 
     fn decide_fill(&mut self) {
-        let max_black_ct = (self.size * self.size) / 6;
-        let mut black_ct: i32 = 0;
+        let max_black_ct: i32 = (self.size * self.size) / 12;
 
-
+        let mut new_rows: Vec<Row> = Vec::new();
         for row in self.rows.clone() {
-            let mut white_spaces: Vec<i32> = Vec::new();
-            let mut white_ct: i32 = 0;
-            let mut ct: usize = 0;
-            for square in &row.vec {
-                if square.fill == PaintMode::Stroke {
-                    white_ct += 1;
-                } else {
-                    //white_spaces.push(ct);
-                    if white_ct != 0 && ct == row.clone().vec.len()  {
-                        white_spaces.push(white_ct);
-                    }
-                    white_ct = 0;
-                }
+            let mut fill_vec: Vec<Fill> = Vec::new();
+            let mut ct: i32 = 0;
+            let mut vec: Vec<Square> = row.vec.clone();
+            let mut iter = row.vec.into_iter().peekable();
+            while let Some(square) = iter.next() {
                 ct += 1;
+                if let Some(next_square) = iter.peek() {
+                    match square.fill {
+                        PaintMode::Stroke => {
+                            if next_square.fill == PaintMode::Fill {
+                                fill_vec.push(Fill::White(ct));
+                                ct = 0;
+                            }
+                        },
+                        PaintMode::Fill => {
+                            if next_square.fill == PaintMode::Stroke {
+                                fill_vec.push(Fill::Black(ct));
+                                ct = 0;
+                            }
+                        },
+                        _ => {}
+                    }
+                } else {
+                    match square.fill {
+                        PaintMode::Stroke => {
+                            fill_vec.push(Fill::White(ct));
+                        },
+                        PaintMode::Fill => {
+                            fill_vec.push(Fill::Black(ct));
+                        },
+                        _ => {}
+                    }
+                }
             }
-            //ct = 0;
-            white_spaces.push(white_ct);
-            println!("{:#?}", white_spaces);
+            // println!("{:?}", fill_vec);
+            let new_row = Row {
+                y: row.y,
+                vec,
+                follows_rules: row.follows_rules,
+                fill_vec,
+            };
+            new_rows.push(new_row);
+        }
+        self.rows = new_rows;
+        for row in self.rows.clone() {
+            println!("{:?}", row.fill_vec);
         }
 
-
-
-        // while !self.follows_rules {
-        //     for row in self.rows.clone() {
-        //         let mut words: Vec<i32> = Vec::new();
-        //         while !row.follows_rules {
-                    
-        //         }
-        //     }
-
-        //     for column in self.columns.clone() {
-        //         while !column.follows_rules {
-
-        //         }
-        //     }
-        // }
-
+        
     }
 
 }
@@ -278,7 +300,7 @@ fn main() {
     let outline = Rect::new(Mm(5.0), Mm(5.0), Mm(205.0), Mm(292.0)).with_mode(PaintMode::Stroke);
     layer.add_rect(outline);
     // define square_ct -> all other variables are dependent on this variable
-    let size: i32 = 7;
+    let size: i32 = 15;
     // because crossword follows symmetry, square_ct must be odd so that there is a 'middle'
     if size % 2 == 0 || size < 5 {
         println!("# of squares must be an odd whole number larger than 5");
@@ -288,8 +310,8 @@ fn main() {
     let mut grid= Grid::new(size);
 
     grid.generate();
-    grid.mirror();
-    grid.columns();
     grid.decide_fill();
+    //grid.mirror();
+    grid.columns();
     grid.draw_grid(doc, layer, font);
 }
