@@ -2,6 +2,7 @@ use printpdf::*;
 use printpdf::path::PaintMode;
 use rand::{thread_rng, Rng};
 use std::fs::File;
+use std::i32;
 use std::io::BufWriter;
 use std::option::Iter;
 use std::process::exit;
@@ -10,6 +11,16 @@ use std::process::exit;
 enum Fill {
     White(i32),
     Black(i32),
+}
+
+impl Fill {
+    
+    fn unwrap(self) -> i32 {
+        match self {
+            Fill::Black(num) => num,
+            Fill::White(num) => num,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -71,7 +82,7 @@ impl Grid {
             let mut squares = Row {
                 y: y_pos,
                 vec: Vec::<Square>::new(),
-                follows_rules: false,
+                follows_rules: true,
                 fill_vec: Vec::<Fill>::new(),
             };
             while x_pos < self.size {
@@ -106,7 +117,7 @@ impl Grid {
         let mut middle_row = Row {
             y: y_pos,
             vec: Vec::<Square>::new(),
-            follows_rules: false,
+            follows_rules: true,
             fill_vec: Vec::<Fill>::new(),
         };
 
@@ -235,60 +246,105 @@ impl Grid {
     }
 
     fn decide_fill(&mut self) {
-        let max_black_ct: i32 = (self.size * self.size) / 12;
+        
+        while self.follows_rules == false {
 
-        let mut new_rows: Vec<Row> = Vec::new();
-        for row in self.rows.clone() {
-            let mut fill_vec: Vec<Fill> = Vec::new();
-            let mut ct: i32 = 0;
-            let mut vec: Vec<Square> = row.vec.clone();
-            let mut iter = row.vec.into_iter().peekable();
-            while let Some(square) = iter.next() {
-                ct += 1;
-                if let Some(next_square) = iter.peek() {
+
+            for row in &mut self.rows {
+                let mut fill_vec: Vec<Fill> = Vec::new();
+                let mut ct: i32 = 0;
+                let mut iter = row.vec.iter().peekable();
+                while let Some(square) = iter.next() {
+                    ct += 1;
+                    let is_last = iter.peek().is_none();
                     match square.fill {
                         PaintMode::Stroke => {
-                            if next_square.fill == PaintMode::Fill {
+                            if is_last || iter.peek().unwrap().fill == PaintMode::Fill {
                                 fill_vec.push(Fill::White(ct));
                                 ct = 0;
                             }
-                        },
+                        }
                         PaintMode::Fill => {
-                            if next_square.fill == PaintMode::Stroke {
+                            if is_last || iter.peek().unwrap().fill == PaintMode::Stroke {
                                 fill_vec.push(Fill::Black(ct));
                                 ct = 0;
                             }
-                        },
-                        _ => {}
-                    }
-                } else {
-                    match square.fill {
-                        PaintMode::Stroke => {
-                            fill_vec.push(Fill::White(ct));
-                        },
-                        PaintMode::Fill => {
-                            fill_vec.push(Fill::Black(ct));
-                        },
+                        }
                         _ => {}
                     }
                 }
+                row.fill_vec = fill_vec;
             }
-            // println!("{:?}", fill_vec);
-            let new_row = Row {
-                y: row.y,
-                vec,
-                follows_rules: row.follows_rules,
-                fill_vec,
-            };
-            new_rows.push(new_row);
-        }
-        self.rows = new_rows;
-        for row in self.rows.clone() {
-            println!("{:?}", row.fill_vec);
-        }
+            
+            for row in &mut self.rows {
+                let mut follows_rules = true;
+                for fill in row.fill_vec.clone() {
+                    match fill {
+                        Fill::White(num) => {
+                            if num < 3 {
+                                follows_rules = false;
+                                }
+                        }
+                        
+                        Fill::Black(_) => continue,
+                    }
+                }
+                row.follows_rules = follows_rules;
+            }
 
-        
+            for row in &mut self.rows {
+                let mut found_problem = false; 
+                let mut search_vec: Vec<Fill> = Vec::new();
+                let mut remove_index: i32 = 0;
+                if row.follows_rules == false {
+                    if row.y == (self.size + 1) / 2  {
+                        continue
+                    } else {
+                        for fill in row.fill_vec.clone() {
+                            if found_problem == false {
+                                search_vec.push(fill);
+                            }
+                            match fill {
+                                Fill::White(num) => {
+                                    if num < 3 {
+                                        found_problem = true;
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                        for fill in search_vec.clone() {
+                            remove_index += fill.unwrap();
+                        }
+                        if remove_index != 0 && remove_index != row.vec.len() as i32 {
+                            let problem_square = row.vec[remove_index as usize].clone();
+                            row.vec[remove_index as usize] = Square {
+                                fill: PaintMode::Stroke,
+                                x_mm: problem_square.x_mm,
+                                y_mm: problem_square.y_mm,
+                                x_pos: problem_square.x_pos,
+                                y_pos: problem_square.y_pos,
+                            }
+                        }
+                    }
+                }
+                println!("\n{:?}", row.y);
+                println!("{:?}", row.fill_vec);
+                println!("{:?}, {:?}", search_vec, remove_index);
+            }
+
+            let mut ct = 0;
+            for row in &mut self.rows {
+                if row.follows_rules == true {
+                    ct += 1;
+                } 
+            }
+            if ct == 8 {
+                self.follows_rules = true;
+            }
     }
+
+}
 
 }
 
